@@ -144,10 +144,10 @@ class ProtocolVersionTest extends TestCase
         $ipv4 = ProtocolVersion::ipv4();
 
         $this->expectError();
-        $this->expectErrorMessage(sprintf(
-            'Call to private %s::__clone() from context \'%s\'',
-            ProtocolVersion::class,
-            self::class,
+        $this->expectErrorMessageMatches(sprintf(
+            '#^Call to private %s::__clone\(\) from (?:context|scope) \'?%s\'?$#',
+            preg_quote(ProtocolVersion::class, '#'),
+            preg_quote(self::class, '#'),
         ));
         $cloned = clone $ipv4;
     }
