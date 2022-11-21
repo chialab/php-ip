@@ -53,6 +53,7 @@ final class Address implements \JsonSerializable
         $bitsLength = $version->getBitsLength();
         $mask = [];
         for ($i = 0; $i < $bitsLength; $i += 32) {
+            // phpcs:ignore SlevomatCodingStandard.PHP.UselessParentheses.UselessParentheses -- This seems a false-positive: the parentheses are required.
             $mask[] = 0xffffffff & ~((1 << 32 - \min($prefix, 32)) - 1);
             $prefix -= 32;
         }
