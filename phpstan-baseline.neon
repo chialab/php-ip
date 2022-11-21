@@ -1,0 +1,36 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Method Chialab\\\\Ip\\\\Address\\:\\:getAddress\\(\\) should return string but returns string\\|false\\.$#"
+			count: 1
+			path: src/Address.php
+
+		-
+			message: "#^Parameter \\#1 \\$input of function array_values expects array, array\\|false given\\.$#"
+			count: 1
+			path: src/Address.php
+
+		-
+			message: "#^Parameter \\#1 \\$expectedJson of static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertJsonStringEqualsJsonString\\(\\) expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/AddressTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$actualJson of static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertJsonStringEqualsJsonString\\(\\) expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/AddressTest.php
+
+		-
+			message: "#^Result of method Chialab\\\\Ip\\\\ProtocolVersion\\:\\:validatePrefixLength\\(\\) \\(void\\) is used\\.$#"
+			count: 1
+			path: tests/ProtocolVersionTest.php
+
+		-
+			message: "#^Parameter \\#1 \\$expectedJson of static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertJsonStringEqualsJsonString\\(\\) expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/SubnetTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$actualJson of static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertJsonStringEqualsJsonString\\(\\) expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/SubnetTest.php

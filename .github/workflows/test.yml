@@ -1,0 +1,179 @@
+name: 'Run tests'
+
+on:
+  pull_request:
+    paths:
+      - '**/*.php'
+      - '.github/workflows/*'
+  push:
+    paths:
+      - '**/*.php'
+      - '.github/workflows/*'
+
+jobs:
+  cs:
+    name: 'Check coding style'
+    runs-on: 'ubuntu-20.04'
+
+    steps:
+      - name: 'Checkout current revision'
+        uses: 'actions/checkout@v3'
+
+      - name: 'Setup PHP'
+        uses: 'shivammathur/setup-php@v2'
+        with:
+          php-version: '8.1'
+          tools: 'composer'
+          coverage: 'none'
+
+      - name: 'Discover Composer cache directory'
+        id: 'cachedir'
+        run: 'echo "::set-output name=path::$(composer global config cache-dir)"'
+
+      - name: 'Share Composer cache across runs'
+        uses: 'actions/cache@v3'
+        with:
+          path: '${{ steps.cachedir.outputs.path }}'
+          key: "composer-${{ github.job }}-${{ hashFiles('**/composer.json') }}"
+          restore-keys: |
+            composer-${{ github.job }}-
+            composer-
+
+      - name: 'Install dependencies with Composer'
+        run: 'composer install --prefer-dist --no-interaction'
+
+      - name: 'Run PHP CodeSniffer'
+        run: 'composer run-script cs-check -- -n'
+
+  stan:
+    name: 'Static code analyzer'
+    runs-on: 'ubuntu-20.04'
+    continue-on-error: true
+
+    steps:
+      - name: 'Checkout current revision'
+        uses: 'actions/checkout@v3'
+
+      - name: 'Setup PHP'
+        uses: 'shivammathur/setup-php@v2'
+        with:
+          php-version: '8.1'
+          tools: 'composer'
+          coverage: 'none'
+
+      - name: 'Discover Composer cache directory'
+        id: 'cachedir'
+        run: 'echo "::set-output name=path::$(composer global config cache-dir)"'
+
+      - name: 'Share Composer cache across runs'
+        uses: 'actions/cache@v3'
+        with:
+          path: '${{ steps.cachedir.outputs.path }}'
+          key: "composer-${{ github.job }}-${{ hashFiles('**/composer.json') }}"
+          restore-keys: |
+            composer-${{ github.job }}-
+            composer-
+
+      - name: 'Install dependencies with Composer'
+        run: 'composer install --prefer-dist --no-interaction'
+
+      - name: 'Run PHP STAN'
+        run: 'composer run-script stan -- --no-progress --error-format=github'
+
+  unit:
+    name: 'Run unit tests'
+    if: "!contains(github.event.commits[0].message, '[skip ci]') && !contains(github.event.commits[0].message, '[ci skip]')"
+    runs-on: 'ubuntu-20.04'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - '7.4'
+          - '8.0'
+          - '8.1'
+
+    env:
+      PHP_VERSION: '${{ matrix.php }}'
+
+    steps:
+      - name: 'Checkout current revision'
+        uses: 'actions/checkout@v3'
+
+      - name: 'Setup PHP'
+        uses: 'shivammathur/setup-php@v2'
+        with:
+          php-version: '${{ matrix.php }}'
+          tools: 'composer'
+          coverage: 'xdebug'
+
+      - name: 'Discover Composer cache directory'
+        id: 'cachedir'
+        run: 'echo "::set-output name=path::$(composer global config cache-dir)"'
+
+      - name: 'Share Composer cache across runs'
+        uses: 'actions/cache@v3'
+        with:
+          path: '${{ steps.cachedir.outputs.path }}'
+          key: "composer-${{ matrix.php }}-${{ hashFiles('**/composer.json') }}"
+          restore-keys: |
+            composer-${{ matrix.php }}-
+            composer-
+
+      - name: 'Install dependencies with Composer'
+        run: 'composer install --prefer-dist --no-interaction'
+
+      - name: 'Dump Composer autoloader'
+        run: 'composer dump-autoload --classmap-authoritative --no-cache'
+
+      - name: 'Run PHPUnit'
+        run: 'phpdbg -qrr vendor/bin/phpunit --coverage-clover=clover.xml'
+
+      - name: 'Export coverage results'
+        uses: 'codecov/codecov-action@v3'
+        with:
+          file: './clover.xml'
+          env_vars: PHP_VERSION
+
+      - name: 'Archive code coverage results'
+        uses: 'actions/upload-artifact@v3'
+        with:
+          name: 'PHP ${{ matrix.php }}'
+          path: 'clover.xml'
+
+  unit-lowest:
+    name: 'Run unit tests with lowest-matching dependencies versions'
+    if: "!contains(github.event.commits[0].message, '[skip ci]') && !contains(github.event.commits[0].message, '[ci skip]')"
+    runs-on: 'ubuntu-20.04'
+
+    steps:
+      - name: 'Checkout current revision'
+        uses: 'actions/checkout@v3'
+
+      - name: 'Setup PHP'
+        uses: 'shivammathur/setup-php@v2'
+        with:
+          php-version: '8.1'
+          tools: 'composer'
+
+      - name: 'Discover Composer cache directory'
+        id: 'cachedir'
+        run: 'echo "::set-output name=path::$(composer global config cache-dir)"'
+
+      - name: 'Share Composer cache across runs'
+        uses: 'actions/cache@v3'
+        with:
+          path: '${{ steps.cachedir.outputs.path }}'
+          key: "composer-lowest-${{ hashFiles('**/composer.json') }}"
+          restore-keys: |
+            composer-lowest-
+            composer-
+
+      - name: 'Update dependencies with Composer'
+        run: 'composer update --prefer-lowest --prefer-dist --no-interaction'
+
+      - name: 'Dump Composer autoloader'
+        run: 'composer dump-autoload --classmap-authoritative --no-cache'
+
+      - name: 'Run PHPUnit'
+        run: 'vendor/bin/phpunit'
