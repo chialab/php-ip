@@ -6,7 +6,7 @@ parameters:
 			path: src/Address.php
 
 		-
-			message: "#^Parameter \\#1 \\$input of function array_values expects array, array\\|false given\\.$#"
+			message: "#^Parameter \\#1 \\$(array|input) of function array_values expects array, array\\|false given\\.$#"
 			count: 1
 			path: src/Address.php
 
