@@ -75,6 +75,20 @@ final class Subnet implements \JsonSerializable
     }
 
     /**
+     * Get last address in subnet.
+     *
+     * @return \Chialab\Ip\Address
+     */
+    public function getLastAddress(): Address
+    {
+        return Address::fromBits($this->firstAddress->getProtocolVersion(), ...\array_map(
+            fn (int $addr, int $netmask): int => $addr | (0xffffffff & ~$netmask),
+            $this->firstAddress->unpack(),
+            $this->netmask->unpack(),
+        ));
+    }
+
+    /**
      * Get block prefix length, in bits.
      *
      * @return int

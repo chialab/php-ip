@@ -124,6 +124,39 @@ class SubnetTest extends TestCase
     }
 
     /**
+     * Data provider for {@see SubnetTest::testGetLastAddress()} test case.
+     *
+     * @return array{string, \Chialab\Ip\Subnet}[]
+     */
+    public function getLastAddressProvider(): array
+    {
+        return [
+            '192.168.0.0/16' => ['192.168.255.255', Subnet::parse('192.168.0.0/16')],
+            '10.0.1.0/24' => ['10.0.1.255', Subnet::parse('10.0.1.1/24')],
+            'fec0::/64' => ['fec0::ffff:ffff:ffff:ffff', Subnet::parse('fec0::/64')],
+            'fec0::fe00/120' => ['fec0::feff', Subnet::parse('fec0::fe1d/120')],
+        ];
+    }
+
+    /**
+     * Test {@see Subnet::getLastAddress()} method.
+     *
+     * @param string $expected Expected result.
+     * @param \Chialab\Ip\Subnet $subnet Subnet.
+     * @return void
+     * @dataProvider getLastAddressProvider()
+     * @covers ::getLastAddress()
+     * @uses \Chialab\Ip\Address
+     * @uses \Chialab\Ip\ProtocolVersion
+     */
+    public function testGetLastAddress(string $expected, Subnet $subnet): void
+    {
+        $actual = $subnet->getLastAddress();
+
+        static::assertSame($expected, $actual->getAddress());
+    }
+
+    /**
      * Data provider for {@see SubnetTest::testContains()} test case.
      *
      * @return array{bool, \Chialab\Ip\Subnet, \Chialab\Ip\Address}[]
@@ -231,6 +264,7 @@ class SubnetTest extends TestCase
      * @covers ::hasSubnet()
      * @uses \Chialab\Ip\Subnet::contains()
      * @uses \Chialab\Ip\Address
+     * @uses \Chialab\Ip\ProtocolVersion
      */
     public function testHasSubnet(bool $expected, Subnet $first, Subnet $second): void
     {
