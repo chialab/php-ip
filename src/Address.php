@@ -40,6 +40,31 @@ final class Address implements \JsonSerializable
     }
 
     /**
+     * Construct a new IP address from its bits, passed as unsigned 32bit integers.
+     *
+     * For an IPv4 address, **one** unsigned 32bit integer is expected.
+     * For an IPv6 address, **four** unsigned 32bit integers are expected.
+     *
+     * @param \Chialab\Ip\ProtocolVersion $version Protocol version.
+     * @param int ...$uint32 Address bits.
+     * @return static
+     */
+    public static function fromBits(ProtocolVersion $version, int ...$uint32): self
+    {
+        $uint32Count = $version->getBitsLength() >> 5;
+        if (\count($uint32) !== $uint32Count) {
+            throw new \InvalidArgumentException(\sprintf('Wrong number of 32bit integers given: expected %d, got %d', $uint32Count, count($uint32)));
+        }
+        foreach ($uint32 as $int) {
+            if (($int & 0xffffffff) !== $int) {
+                throw new \InvalidArgumentException(sprintf('Not a valid 32bit integer: 0x%x', $int));
+            }
+        }
+
+        return new self($version, \pack('N*', ...$uint32));
+    }
+
+    /**
      * Instantiate a netmask for the given protocol and with the requested prefix length.
      *
      * @param \Chialab\Ip\ProtocolVersion $version Protocol version.
@@ -58,9 +83,7 @@ final class Address implements \JsonSerializable
             $prefix -= 32;
         }
 
-        $packed = \pack('N*', ...$mask);
-
-        return new self($version, $packed);
+        return self::fromBits($version, ...$mask);
     }
 
     /**
@@ -138,13 +161,11 @@ final class Address implements \JsonSerializable
             throw new \InvalidArgumentException(sprintf('Cannot apply an %s netmask to an %s address', $netmask->getProtocolVersion(), $version));
         }
 
-        $packed = \pack('N*', ...\array_map(
+        return self::fromBits($version, ...\array_map(
             fn (int $addrBits, int $netmaskBits): int => $addrBits & $netmaskBits,
             $this->unpack(),
             $netmask->unpack(),
         ));
-
-        return new self($version, $packed);
     }
 
     /**

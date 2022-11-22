@@ -71,6 +71,51 @@ class AddressTest extends TestCase
     }
 
     /**
+     * Data provider for {@see AddressTest::testFromBits()} test case.
+     *
+     * @return array{string, \Chialab\Ip\ProtocolVersion, int[]}[]
+     */
+    public function fromBitsProvider(): array
+    {
+        return [
+            '127.0.0.1' => ['127.0.0.1', ProtocolVersion::ipv4(), [0x7f000001]],
+            '192.168.192.168' => ['192.168.192.168', ProtocolVersion::ipv4(), [0xc0a8c0a8]],
+            'too few bits IPv4' => [new \InvalidArgumentException('Wrong number of 32bit integers given: expected 1, got 0'), ProtocolVersion::ipv4(), []],
+            'too many bits IPv4' => [new \InvalidArgumentException('Wrong number of 32bit integers given: expected 1, got 2'), ProtocolVersion::ipv4(), [0x7f000001, 0x7f000001]],
+            '64bit integer' => [new \InvalidArgumentException('Not a valid 32bit integer: 0xffffffffffffff'), ProtocolVersion::ipv4(), [0xffffffffffffff]],
+
+            'ffff:ffff::' => ['ffff:ffff::', ProtocolVersion::ipv6(), [0xffffffff, 0, 0, 0]],
+            'fec0::fe1d' => ['fec0::fe1d', ProtocolVersion::ipv6(), [0xfec00000, 0, 0, 0xfe1d]],
+            'too few bits IPv6' => [new \InvalidArgumentException('Wrong number of 32bit integers given: expected 4, got 1'), ProtocolVersion::ipv6(), [0x7f000001]],
+            'too many bits IPv6' => [new \InvalidArgumentException('Wrong number of 32bit integers given: expected 4, got 5'), ProtocolVersion::ipv6(), [0xfec00000, 0, 0, 0, 0xfe1d]],
+        ];
+    }
+
+    /**
+     * Test {@see Address::fromBits()} method.
+     *
+     * @param string|\Exception $expected Expected outcome.
+     * @param \Chialab\Ip\ProtocolVersion $version Internet protocol version.
+     * @param int[] $uint32 Array of unsigned 32bit integers representing address bits.
+     * @return void
+     * @dataProvider fromBitsProvider()
+     * @covers ::fromBits()
+     * @uses \Chialab\Ip\Address::__construct()
+     * @uses \Chialab\Ip\Address::getAddress()
+     * @uses \Chialab\Ip\ProtocolVersion
+     */
+    public function testFromBits($expected, ProtocolVersion $version, array $uint32): void
+    {
+        if ($expected instanceof \Exception) {
+            $this->expectExceptionObject($expected);
+        }
+
+        $actual = Address::fromBits($version, ...$uint32);
+
+        static::assertSame($expected, $actual->getAddress());
+    }
+
+    /**
      * Data provider for {@see AddressTest::testNetmask()} test case.
      *
      * @return array{int[]|\Exception, \Chialab\Ip\ProtocolVersion, int}[]
@@ -106,6 +151,7 @@ class AddressTest extends TestCase
      * @return void
      * @dataProvider netmaskProvider()
      * @covers ::netmask()
+     * @uses \Chialab\Ip\Address::fromBits()
      * @uses \Chialab\Ip\Address::__construct()
      * @uses \Chialab\Ip\Address::unpack()
      * @uses \Chialab\Ip\ProtocolVersion
@@ -152,6 +198,7 @@ class AddressTest extends TestCase
      * @return void
      * @dataProvider applyNetmaskProvider()
      * @covers ::applyNetmask()
+     * @uses \Chialab\Ip\Address::fromBits()
      * @uses \Chialab\Ip\Address::__construct()
      * @uses \Chialab\Ip\Address::getProtocolVersion()
      * @uses \Chialab\Ip\Address::unpack()
