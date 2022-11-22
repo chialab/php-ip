@@ -132,23 +132,4 @@ class ProtocolVersionTest extends TestCase
         $return = $ipVersion->validatePrefixLength($bits);
         static::assertTrue(true);
     }
-
-    /**
-     * Test that {@see ProtocolVersion::__clone()} is disallowed.
-     *
-     * @return void
-     * @coversNothing
-     */
-    public function testClone(): void
-    {
-        $ipv4 = ProtocolVersion::ipv4();
-
-        $this->expectError();
-        $this->expectErrorMessageMatches(sprintf(
-            '#^Call to private %s::__clone\(\) from (?:context|scope) \'?%s\'?$#',
-            preg_quote(ProtocolVersion::class, '#'),
-            preg_quote(self::class, '#'),
-        ));
-        $cloned = clone $ipv4;
-    }
 }
