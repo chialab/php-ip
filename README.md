@@ -1,6 +1,9 @@
 IP Address library for PHP
 ==========================
 
+[![Run tests](https://github.com/chialab/php-ip/actions/workflows/test.yml/badge.svg)](https://github.com/chialab/php-ip/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/chialab/php-ip/branch/main/graph/badge.svg?token=T3LTGXYGOJ)](https://codecov.io/gh/chialab/php-ip)
+
 This library for PHP 7.4+ builds an abstraction over management of
 Internet Protocol versions, addresses and CIDR blocks.
 
