@@ -73,7 +73,7 @@ class AddressTest extends TestCase
     /**
      * Data provider for {@see AddressTest::testFromBits()} test case.
      *
-     * @return array{string, \Chialab\Ip\ProtocolVersion, int[]}[]
+     * @return array{string|\Exception, \Chialab\Ip\ProtocolVersion, int[]}[]
      */
     public function fromBitsProvider(): array
     {
